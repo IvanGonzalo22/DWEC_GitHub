@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>La Peliculera</title>
+</head>
+
+<body>
+    <!-- Imprimir en HTML -->
+    <fieldset>
+        <legend>Cines La Peliculera</legend>
+        <p id="nombreCliente">Nombre del cliente: </p>
+        <p id="peliculaElegida">Película elegida: </p>
+        <p id="regalos">Regalos: </p>
+        <p id="totalAPagar">Total a pagar: </p>
+    </fieldset>
+    <script>
+        alert("¡Bienvenido a la creación de entradas de La Peliculera!");
+
+        let nombre;
+        do { // Porque debe hacerlo al menos una vez
+            nombre = prompt("Introduce tu nombre:");
+            if (typeof nombre !== 'string' || nombre === null || nombre.trim() === "") {
+                /* typeof verifica si lo que hemos introducido es String, aunque
+                en este caso siempre es String lo introducido por prompt */
+                // null verifica si presionamos cancelar en el diálogo.
+                /* trim impide que ingresemos solo espacios, ya que este los
+                elimina y si ve que no hay nada "", salta el alert.
+                Ejemplo simple:
+                let ejemplo = "    Hola mundo!    ";
+                console.log(ejemplo.trim()); // "Hola mundo!" */
+                alert("Necesitas introducir un nombre válido para continuar.");
+            }
+        } while (typeof nombre !== 'string' || nombre === null || nombre.trim() === "");
+        // Repite hasta que ingresemos un nombre no vacío.
+
+        let edadOriginal;
+        let edadParseada; // Esta y no edadOriginal porque la primera la usamos en while
+        do {
+            edadOriginal = prompt("Introduce tu edad:");
+            edadParseada = parseInt(edadOriginal)
+            // Pasamos edadOriginal a número entero
+            if (isNaN(edadParseada) || edadParseada < 0 || edadOriginal === null) {
+                // Usamos isNaN para comprobar si no es un número
+                // Comprobamos también que no sea negativo
+                // Cuidado con comparar una variable parseada con null
+                alert("Necesitas introducir una edad válida para continuar.");
+            }
+        } while (isNaN(edadParseada) || edadParseada < 0 || edadOriginal === null);
+
+        /*
+        // OPCIÓN A: Listando en el prompt con join
+        let arrayPelis = ['Spider Man', 'Superman', 'Dragon Ball Super', 'La era del hielo', '18videos'];
+        let peliElegida;
+        do {
+            peliElegida = prompt("Escoge una película entre:" + arrayPelis());
+            // peliElegida = prompt("Elige una película que está en cartelera:\n" + arrayPelis.join("\n"));
+            if (!arrayPelis.includes(peliElegida) || peliElegida === null) {
+                // includes evalúa si peliElegida es elemento de arrayPelis
+                alert("Necesitas introducir una película válida para continuar.");
+            }
+        } while (!arrayPelis.includes(peliElegida) || peliElegida === null);
+        */
+
+        // OPCIÓN B: Listando en el prompt con una funcion dentro
+        let arrayPelis = ['Spider Man', 'Superman', 'Dragon Ball Super', 'La era del hielo', '18videos'];
+        function listarPelis(arrayPelis) {
+            let lista = "";
+            // Para que no comience undefined
+            for (let i = 0; i < arrayPelis.length; i++) {
+                lista += (i + 1) + ". " + arrayPelis[i] + "\n";
+            }
+            return lista;
+        }
+
+        let peliElegida;
+        let indiceElegido;
+        do {
+            peliElegida = prompt("Escoge una película de la siguiente lista, introduciendo el número correspondiente:\n" + listarPelis(arrayPelis));
+            // peliElegida recoge un número
+            indiceElegido = parseInt(peliElegida) - 1;
+            // Ajusta el índice para que coincida con el array (empezaba en 0)
+            if (isNaN(indiceElegido) || indiceElegido < 0 || indiceElegido >= arrayPelis.length || peliElegida === null) {
+                alert("Necesitas introducir un número válido correspondiente a la película para continuar.");
+            } else if (edadParseada <= 17 && indiceElegido == 4) {
+                alert("No cumples la edad legal mínima para visualizar esta película, prueba con otra.");
+                indiceElegido = -1;
+                /* Asignamos un valor inferior a cero (por ejemplo) forzosamente para que a continuación
+                compruebe en el paréntesis del while que es una condición por la cual repetira el do. */
+            }
+        } while (isNaN(indiceElegido) || indiceElegido < 0 || indiceElegido >= arrayPelis.length || peliElegida === null);
+
+        let arrayRegalos = ['Palomitas', 'Caramelos', 'Refresco', 'Perrito', 'Agua'];
+        let regaloTocado = "";
+        let precioEntrada = 8.5;
+        let descuento1 = 50;
+        let descuento2 = 10;
+        if (edadParseada < 18) {
+            alert("Promoción: Por ser menor, te llevas caramelos y refresco de regalo. ¡Incluyendo un 50% de descuento en tu entrada!");
+            regaloTocado = arrayRegalos[1] + ', y ' + arrayRegalos[2] // Por concatenación directa
+            precioEntrada = precioEntrada - (precioEntrada * (descuento1 / 100));
+        }
+        if (edadParseada >= 18 && edadParseada <= 25) {
+            alert("Promoción: Por tener entre 18 y 25 años, te llevas palomitas, perrito y refresco de regalo.");
+            regaloTocado = `${arrayRegalos[0]}, ${arrayRegalos[3]} y ${arrayRegalos[2]}`; // Por template strings
+        }
+        if (edadParseada >= 26 && edadParseada <= 35) {
+            alert("Promoción: Por tener entre 26 y 35 años, te llevas perrito y refresco de regalo.");
+            regaloTocado = arrayRegalos[3] + ', y ' + arrayRegalos[2]
+        }
+        if (edadParseada >= 36) {
+            alert("Promoción: Por ser mayor de 35 años, te llevas una botella de agua de regalo. ¡Incluyendo un 10% de descuento en tu entrada!");
+            regaloTocado = `${arrayRegalos[4]}`;
+            precioEntrada = precioEntrada - (precioEntrada * (descuento2 / 100));
+        }
+
+        // Finalmente, actualizamos los elementos HTML con los valores recogidos y calculados
+        document.getElementById("nombreCliente").innerHTML += nombre;
+        document.getElementById("peliculaElegida").innerHTML += arrayPelis[indiceElegido];
+        document.getElementById("regalos").innerHTML += regaloTocado;
+        document.getElementById("totalAPagar").innerHTML += precioEntrada.toFixed(2) + ' €';
+        // toFixed redondea al número de decimales indicados, en este caso nos interesan 2 para los céntimos
+
+        // Imprimir en consola
+        console.log("Nombre del cliente: " + nombre);
+        console.log("Película elegida: " + arrayPelis[indiceElegido]);
+        console.log("Regalos: " + regaloTocado);
+        console.log("Total a pagar: " + precioEntrada + ' €');
+    </script>
+</body>
+
+</html>

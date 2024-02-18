@@ -1,0 +1,520 @@
+<!DOCTYPE html> <!-- PÁGINA DEL JUEGO -->
+<html>
+
+<!--
+Pendiente:
+    • Crear tablero con setAttribute, classList, appendChild
+    • Borrar tablero
+
+    • Arreglar superposición de clicks en una misma celda
+    • Arreglar mensaje de victoria calculando total de celdas destapadas
+    • Modificar destaparCasillasAleatoriasInicialmente()
+
+Hecho:
+    • Dificultad: fácil, media, difícil
+    • Analizar casilla cuando se pinche en ella
+    • Contador de bombas alrededor o destapar las casillas circundantes. Recursividad
+    • Generar nueva partida
+
+Bibliografía:
+    - scripts stackoverflow, w3schools, chatGPT
+    - botones https://codepen.io/DanielWeiner/pen/naybVd
+-->
+
+<head>
+    <title>Juego</title>
+    <style>
+        @import url('https://fonts.cdnfonts.com/css/arcade-classic');
+
+        html,
+        body {
+            height: 100%;
+            /* Ajusta la altura de la página al tamaño total */
+            margin: 5px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        body {
+            background-color: rgb(0, 0, 0);
+            /* Todos los background-color se usan para control de tamaños de caja/etiquetas */
+        }
+
+        header {
+            font-family: 'ArcadeClassic', sans-serif;
+            text-align: center;
+            margin: 3px;
+            padding: 25px;
+            background-color: transparent;
+        }
+
+        main {
+            font-family: 'ArcadeClassic', sans-serif;
+            margin: 3px;
+            text-shadow: -1px -1px rgb(255, 124, 233), 1px 1px rgb(26, 0, 21);
+            color: rgb(80, 0, 67);
+            text-align: center;
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            background-color: rgb(0, 0, 0);
+        }
+
+        footer {
+            font-family: 'ArcadeClassic', sans-serif;
+            margin: 3px;
+            text-shadow: -1px -1px rgb(255, 124, 233), 1px 1px rgb(26, 0, 21);
+            color: rgb(80, 0, 67);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: rgb(0, 0, 0);
+        }
+
+        header a {
+            font-size: 5vw;
+            margin: 0px;
+            /* Elimina los márgenes externos */
+            padding: 0px;
+            /* Opcional: Ajusta el relleno si es necesario */
+            line-height: 0;
+            /* Ajusta la altura de línea para reducir el espacio entre líneas de texto */
+            background-color: transparent;
+        }
+
+        header a:first-child {
+            top: 1px;
+            /* Más px, más abajo Dead (encima de Minesweeper) */
+            text-shadow: -1px -1px rgb(255, 124, 233), 1px 1px rgb(26, 0, 21);
+            color: rgb(80, 0, 67);
+            position: relative;
+            /* O 'absolute', dependiendo de tu estructura */
+            z-index: 2;
+            /* Mayor valor significa más arriba */
+        }
+
+        header a:last-child {
+            top: 0px;
+            text-shadow: -1px -1px rgb(255, 196, 128), 1px 1px rgb(104, 55, 0);
+            color: rgb(177, 95, 2);
+            position: relative;
+            /* O 'absolute', dependiendo de tu estructura */
+            z-index: 1;
+            /* Menor valor significa más abajo */
+        }
+
+        a:link {
+            color: rgb(80, 0, 67);
+            text-decoration: none;
+        }
+
+        #cronometro {
+            text-shadow: -1px -1px rgb(255, 196, 128), 1px 1px rgb(104, 55, 0);
+            color: rgb(177, 95, 2);
+            float: right;
+        }
+
+        #contadorBanderas {
+            display: inline-flex;
+            align-items: center;
+            font-size: 1rem;
+        }
+
+        #contadorBanderas img {
+            width: 20px;
+            margin-right: 5px;
+        }
+
+        .botonMusica {
+            text-shadow: 1px 1px pink, -1px -1px maroon;
+            line-height: 1.5em;
+            text-align: center;
+            display: inline-block;
+            width: 1.5em;
+            border-radius: .75em;
+            background-color: red;
+            box-shadow: 0 .2em maroon;
+            color: white;
+            margin: 5px;
+            background-image: linear-gradient(left top, pink 3%, red 22%, maroon 99%);
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        .botonMusica:active {
+            box-shadow: none;
+            position: relative;
+            top: .2em;
+        }
+
+        .controles {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 2px;
+            padding: 0px;
+            /* Menor margen para acercar al tablero */
+            background-color: #000000;
+        }
+
+        .control-texto {
+            font-size: 30px;
+            /* Tamaño de fuente para el cronómetro y contador */
+            margin: 0 10px;
+            /* Espaciado alrededor del cronómetro y el contador*/
+        }
+
+        #tablero {
+            border: 2px solid rgb(177, 95, 2);
+            border-radius: .2em;
+            background-color: #000000;
+            display: grid;
+            padding: 1px;
+            column-gap: 1px;
+            /* Espacio horizontal entre celdas */
+            row-gap: 1px;
+            /* Espacio vertical entre celdas */
+        }
+
+        .celda {
+            width: 20px;
+            height: 20px;
+            background-color: rgb(80, 0, 67);
+            border-radius: .2em;
+            display: flex;
+
+            padding: 0;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .celda.bomba {
+            background-image: url('../media/skull.png');
+            /* ".."" significa regresar a la carpeta padre antes de entrar en media */
+            background-size: cover;
+        }
+
+        .celda.sospechosa {
+            background-image: url('../media/flag.png');
+            background-size: cover;
+        }
+
+        .celda.revelado {
+            background-color: rgb(177, 95, 2);
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <a href="inicio.html">Dead</a>
+        <br>
+        <a href="inicio.html">Minesweeper</a>
+    </header>
+    <main>
+        <div class="controles">
+            <div id="cronometro" class="control-texto">00:00</div>
+            <div id="contadorBanderas">
+                <span id="numeroBanderas" class="control-texto">0</span>
+                <img src="../media/flag.png" alt="Bandera" style="width: 20px; vertical-align: middle;">
+                <!-- No conseguía introducir satisfactoriamente un css por separado para modificar el tamaño del número de banderas -->
+            </div>
+            <span class='botonMusica'>&#9658;</span>
+        </div>
+        <audio id="audio" loop>
+            <source src="../media/music.mp3" type="audio/mpeg">
+            Tu navegador no soporta audio HTML.
+        </audio>
+        <div id="tablero"></div>
+    </main>
+    <footer>
+        <a href="mailto:igr360@gmail.com">Contacta conmigo aquí</a>
+        <p>Copyright 2024</p>
+    </footer>
+
+    <script>
+
+        // Leer el nivel de dificultad desde la URL para configurar el juego dinámicamente
+        function obtenerNivelDesdeURL() {
+            const parametros = new URLSearchParams(window.location.search);
+            return parametros.get('nivel'); // Obtiene la dificultad
+        }
+
+        let filas;
+        let columnas;
+        let numeroDeMinas;
+        let contadorBanderas;
+
+        function configurarJuego() {
+            const nivel = obtenerNivelDesdeURL();
+            // Llama a la función para obtener el nivel.
+
+            // Ajusta las variables de configuración según el nivel.
+            if (nivel === 'facil') {
+                filas = 10;
+                columnas = 10;
+                numeroDeMinas = 20;
+                contadorBanderas = 20;
+            } else if (nivel === 'medio') {
+                filas = 14;
+                columnas = 14;
+                numeroDeMinas = 30;
+                contadorBanderas = 30;
+            } else if (nivel === 'dificil') {
+                filas = 18;
+                columnas = 18;
+                numeroDeMinas = 60;
+                contadorBanderas = 50;
+            }
+            /*
+            else {
+                // Valores por defecto si el nivel no se especifica o es inválido.
+                filas = columnas = 10; numeroDeMinas = 20;
+            }
+            */
+
+            document.getElementById('numeroBanderas').textContent = contadorBanderas;
+
+        }
+
+        let tablero = []; // Inicializa el tablero como un array vacío.
+
+        function generarTableroJS() {
+            tablero = []; // Reinicia el tablero para una nueva configuración.
+            for (let i = 0; i < filas; i++) { // Crea filas
+                tablero[i] = [];
+                for (let j = 0; j < columnas; j++) { // Crea columnas
+                    tablero[i][j] = { mina: false, numero: 0, revelado: false, flag: false };
+                }
+            }
+            colocarBombasTableroJS(); // Coloca bombas en el tablero
+            destaparCasillasAleatoriasInicialmente(); // Destapa algunas casillas al inicio. MODIFICAR
+        }
+
+        function numeroAleatorio(max) {
+            // max es un número y determina el límite superior del rango de los números que podría originar math.random*max
+            return Math.floor(Math.random() * max);
+            // Math.floor redondea a la baja un número con decimales para convertirlo en entero
+        }
+
+        function colocarBombasTableroJS() {
+            let minasColocadas = 0; // Llevará la cuenta de cuantas minas se colocarán cada vez
+            while (minasColocadas < numeroDeMinas) { // Mientras las colocadas no sean más que las asignadas al inicio del juego...
+                let fila = numeroAleatorio(filas); // El número de fila donde se colocará la bomba será igual al número aleatorio generado
+                // a partir de la variable filas del inicio del juego por math.random
+                let columna = numeroAleatorio(columnas); // El número de columna donde se colocará la bomba será igual al número aleatorio generado
+                // a partir de la variable columnas del inicio del juego por math.random
+                if (!tablero[fila][columna].mina) { // Si la celda tablero[fila][columna] no tiene bomba aún (obviamente que no)...
+                    tablero[fila][columna].mina = true; // ... colocamos bomba
+                    minasColocadas++; // Y sumamos uno al contador para la siguiente celda hasta llegar al número numeroDeMinas
+                }
+            }
+        }
+
+        function destaparCasillasAleatoriasInicialmente() {
+            let destapadas = 0;
+            while (destapadas < 20) { // 20? NO DEBE SER SIEMPRE EL MISMO NUMERO
+                let fila = numeroAleatorio(filas);
+                let columna = numeroAleatorio(columnas);
+                // Asegurarse de no destapar una celda con mina o ya revelada
+                if (!tablero[fila][columna].mina && !tablero[fila][columna].revelado) {
+                    investigarCeldaInicial(fila, columna);
+                    destapadas++;
+                    if (destapadas >= 20) break; // Salir del bucle si alcanzamos el límite
+                }
+            }
+        }
+
+        // Modificación de investigarCelda para que no reinicie el juego ni dibuje el tablero inmediatamente
+        function investigarCeldaInicial(x, y) {
+            if (!tablero[x][y].mina) {
+                tablero[x][y].revelado = true;
+                tablero[x][y].numero = calcularNumMinas(x, y);
+                if (tablero[x][y].numero === 0) {
+                    // Lógica para destapar celdas adyacentes, pero limitando la recursividad
+                    // para no exceder las 20 celdas iniciales destapadas
+                    destaparCeldasVecinas(x, y);
+                }
+            }
+        }
+
+        function calcularNumMinas(x, y) {
+            let numMinas = 0;
+            for (let i = -1; i <= 1; i++) {
+                // Itera sobre las celdas adyacentes en todas direcciones
+                for (let j = -1; j <= 1; j++) {
+                    if (x + i >= 0 && x + i < filas && y + j >= 0 && y + j < columnas) {
+                        // Verifica que la celda esté dentro del tablero
+                        if (tablero[x + i][y + j].mina) numMinas++;
+                        // Incrementa numMinas si encuentra una mina
+                    }
+                }
+            }
+            return numMinas;
+        }
+
+        function numeroAleatorio(max) {
+            /* Retorna un entero (math.floor) de la multiplicacion de un numero decimal
+            aleatorio entre 0 y 1 (math.random) por max */
+            return Math.floor(Math.random() * max);
+        }
+
+        function dibujarTableroHTML() {
+            const tableroElemento = document.getElementById('tablero');
+            // Establece el número de columnas en el estilo del tablero
+            tableroElemento.style.gridTemplateColumns = `repeat(${columnas}, 20px)`;
+            // Limpia el contenido del tablero para redibujarlo
+            tableroElemento.innerHTML = '';
+            // Itera sobre todas las filas y columnas para dibujar el tablero
+            for (let i = 0; i < filas; i++) {
+                for (let j = 0; j < columnas; j++) {
+                    const celdaElemento = document.createElement('div'); // Crea una nueva celda
+                    celdaElemento.classList.add('celda'); // Asigna la clase 'celda' para estilos
+                    celdaElemento.id = `celda-${i}-${j}`; // Asigna un ID único a cada celda
+                    // Agrega evento de clic para investigar la celda
+                    celdaElemento.addEventListener('click', () => investigarCelda(i, j));
+                    // Agrega evento de clic derecho para colocar una bandera
+                    celdaElemento.addEventListener('contextmenu', (e) => {
+                        e.preventDefault(); // Evita el menú contextual
+                        colocarBandera(i, j); // Llama a colocarBandera para la celda
+                    });
+                    tableroElemento.appendChild(celdaElemento); // Añade la celda al tablero
+                    // Marca las celdas reveladas con estilos y contenido adecuado
+                    if (tablero[i][j].revelado) {
+                        celdaElemento.classList.add('revelado');
+                        if (tablero[i][j].mina) {
+                            celdaElemento.classList.add('bomba'); // Estilo para minas
+                        } else {
+                            celdaElemento.textContent = tablero[i][j].numero > 0 ? tablero[i][j].numero : ''; // Muestra el número de minas adyacentes
+                        }
+                    }
+                    // Marca las celdas con banderas
+                    if (tablero[i][j].flag) {
+                        celdaElemento.classList.add('sospechosa'); // Estilo para banderas
+                    }
+                }
+            }
+        }
+
+        function investigarCelda(x, y) {
+            if (tablero[x][y].mina) {
+                // Si la celda tiene una mina, muestra todas las bombas y termina el juego
+                mostrarTodasLasBombas().then(() => {
+                    alert('¡Juego terminado!');
+                    window.location.href = 'inicio.html';
+                    // Redirige a inicio.html despueé de mostrar todas las bombas
+                });
+            } else {
+                // Actualiza número de minas adyacentes y revela la celda
+                tablero[x][y].numero = calcularNumMinas(x, y);
+                tablero[x][y].revelado = true;
+                if (tablero[x][y].numero === 0) {
+                    // Si no hay minas adyacentes, destapa celdas vecinas.
+                    destaparCeldasVecinas(x, y);
+                }
+                dibujarTableroHTML();
+                // Redibuja el tablero con cambios
+            }
+        }
+
+        function mostrarTodasLasBombas() {
+            // Revela todas las bombas en el tablero con un delay
+            return new Promise((resolve) => {
+                for (let i = 0; i < filas; i++) {
+                    for (let j = 0; j < columnas; j++) {
+                        if (tablero[i][j].mina) {
+                            const celdaElemento = document.getElementById(`celda-${i}-${j}`);
+                            celdaElemento.classList.add('bomba'); // Revela la bomba
+                        }
+                    }
+                }
+                setTimeout(() => {
+                    resolve();
+                }, 100); // Espera 0,1 segundo antes de ejecutar el resolve, dando tiempo para ver las bombas
+            });
+        }
+
+        function colocarBandera(x, y) {
+            if (!tablero[x][y].revelado) {
+                if (!tablero[x][y].flag && contadorBanderas > 0) { // Solo permite colocar banderas si quedan disponibles
+                    tablero[x][y].flag = true;
+                    contadorBanderas--; // Disminuye el contador de banderas
+                } else if (tablero[x][y].flag) {
+                    tablero[x][y].flag = false;
+                    contadorBanderas++; // Aumenta el contador si se quita una bandera
+                } else {
+                    alert("No puedes usar más banderas."); // Alerta si se intenta colocar una bandera pero el contador es 0
+                    return; // Sale de la función para no actualizar el tablero ni mostrar el cambio
+                }
+
+                // Actualiza el texto del elemento HTML del contador de banderas
+                document.getElementById('numeroBanderas').textContent = contadorBanderas; // Correctamente actualiza solo el número de banderas
+
+
+                dibujarTableroHTML();
+            }
+        }
+
+        function destaparCeldasVecinas(x, y) {
+            // Recorre celdas vecinas en un cuadrado 3x3 centrado en (x,y)
+            for (let i = -1; i <= 1; i++) {
+                for (let j = -1; j <= 1; j++) {
+                    // Verifica si la celda está dentro de los límites del tablero
+                    if (x + i >= 0 && x + i < filas && y + j >= 0 && y + j < columnas) {
+                        // Si la celda no está revelada ni es una mina, la revela
+                        if (!tablero[x + i][y + j].revelado && !tablero[x + i][y + j].mina) {
+                            tablero[x + i][y + j].revelado = true;
+                            tablero[x + i][y + j].numero = calcularNumMinas(x + i, y + j);
+                            // Si no hay minas adyacentes, aplicamos recursividad para destapar más celdas
+                            if (tablero[x + i][y + j].numero === 0) {
+                                destaparCeldasVecinas(x + i, y + j);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        let tiempo = 0;
+        let cronometroInterval;
+
+        function iniciarCronometro() {
+            cronometroInterval = setInterval(() => {
+                tiempo++;
+                const minutos = Math.floor(tiempo / 60);
+                const segundos = tiempo % 60;
+                document.getElementById('cronometro').textContent =
+                    (minutos < 10 ? '0' : '') + minutos + ':' +
+                    (segundos < 10 ? '0' : '') + segundos;
+            }, 1000);
+        }
+
+        document.addEventListener('DOMContentLoaded', (event) => {
+            const audio = document.getElementById('audio');
+
+            const playPauseButton = document.querySelector('.botonMusica');
+            playPauseButton.addEventListener('click', function () {
+                if (audio.paused) {
+                    audio.play();
+                    this.innerHTML = '&#10074;&#10074;'; // Cambia el icono a pause
+                } else {
+                    audio.pause();
+                    this.innerHTML = '&#9658;'; // Cambia el icono a play
+                }
+            });
+        });
+
+        // Inicia el juego
+        configurarJuego();
+        generarTableroJS();
+        dibujarTableroHTML();
+        iniciarCronometro();
+    </script>
+
+</body>
+
+</html>

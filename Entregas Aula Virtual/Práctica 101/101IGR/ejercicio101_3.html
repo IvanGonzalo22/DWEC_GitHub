@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tarea101</title>
+</head>
+
+<body>
+    <script>
+
+        // Ejercicio 3
+        // 1)
+        function saludar() {
+            var saludo="Hola";
+            alert(saludo);
+        }
+
+        saludar(); // Muestra "Hola" en la ventana emergente del navegador
+
+        // alert(saludo);
+        /* No muestra nada porque la variable "saludo" solo es accesible desde dentro de la función
+        "saludar" ya que esta declarada dentro de ella. De hecho, si quito el comentario impedirá que
+        el resto del código funcione (los siguientes "alert()"" no funcionarán)*/
+
+
+        // 2)
+        var despedida = "Adiós";
+
+        function despedir() {
+            alert(despedida);
+        }
+
+        despedir(); // Muestra "Adiós en la siguiente ventana emergente del navegador"
+
+        alert(despedida); // Hace lo mismo porque la variable "despedida" sí esta declarada fuera.
+
+        // 3)
+        var variable = 0;
+
+        function ambito() {
+            var variable = 1;
+            alert(variable);
+        }
+
+        ambito(); // Muestra "1"
+
+        alert(variable); // Muestra "0"
+
+
+        // 4)
+        var variable1 = "Soy una variable global.";
+
+        function mostrarVariable1() {
+            var variable1 = "Soy una variable local.";
+            alert(variable1);
+        }
+
+        mostrarVariable1(); // Muestra "Soy una variable local."
+
+        alert(variable1); // Muestra "Soy una variable global."
+        
+    </script>
+</body>
+
+</html>

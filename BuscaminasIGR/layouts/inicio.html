@@ -1,0 +1,201 @@
+<!DOCTYPE html> <!-- PÁGINA DEL MENÚ DE INICIO -->
+<html>
+
+<!--
+Pendiente:
+    • Crear tablero con setAttribute, classList, appendChild
+    • Borrar tablero
+
+    • Arreglar superposición de clicks en una misma celda
+    • Arreglar mensaje de victoria calculando total de celdas destapadas
+    • Modificar destaparCasillasAleatoriasInicialmente()
+
+Hecho:
+    • Dificultad: fácil, media, difícil
+    • Analizar casilla cuando se pinche en ella
+    • Contador de bombas alrededor o destapar las casillas circundantes. Recursividad
+    • Generar nueva partida
+
+Bibliografía:
+    - scripts stackoverflow, w3schools, chatGPT
+    - botones https://codepen.io/DanielWeiner/pen/naybVd
+-->
+
+<head>
+    <title>Inicio</title>
+    <link href="https://fonts.cdnfonts.com/css/arcade-classic" rel="stylesheet">
+
+    <style>
+        @import url('https://fonts.cdnfonts.com/css/arcade-classic');
+
+        html,
+        body {
+            height: 100%;
+            /* Ajusta la altura de la página al tamaño total */
+            margin: 5px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        body {
+            background-color: rgb(0, 0, 0);
+            /* Todos los background-color se usan para control de tamaños de caja/etiquetas */
+        }
+
+        header {
+            font-family: 'ArcadeClassic', sans-serif;
+            text-align: center;
+            margin: 3px;
+            padding: 25px;
+            background-color: transparent;
+        }
+
+        main {
+            font-family: 'ArcadeClassic', sans-serif;
+            text-align: center;
+            margin: 3px;
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            background-color: rgb(0, 0, 0);
+        }
+
+        footer {
+            font-family: 'ArcadeClassic', sans-serif;
+            margin: 3px;
+            text-shadow: -1px -1px rgb(255, 124, 233), 1px 1px rgb(26, 0, 21);
+            color: rgb(80, 0, 67);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: rgb(0, 0, 0);
+        }
+
+        header a {
+            font-size: 5vw;
+            margin: 0px;
+            /* Elimina los márgenes externos */
+            padding: 0px;
+            /* Opcional: Ajusta el relleno si es necesario */
+            line-height: 0;
+            /* Ajusta la altura de línea para reducir el espacio entre líneas de texto */
+            background-color: transparent;
+        }
+
+        header a:first-child {
+            top: 1px; /* Más px, más abajo Dead (encima de Minesweeper) */
+            text-shadow: -1px -1px rgb(255, 124, 233), 1px 1px rgb(26, 0, 21);
+            color: rgb(80, 0, 67);
+            position: relative;
+            /* O 'absolute', dependiendo de tu estructura */
+            z-index: 2;
+            /* Mayor valor significa más arriba */
+        }
+
+        header a:last-child {
+            top: 0px;
+            text-shadow: -1px -1px rgb(255, 196, 128), 1px 1px rgb(104, 55, 0);
+            color: rgb(177, 95, 2);
+            position: relative;
+            /* O 'absolute', dependiendo de tu estructura */
+            z-index: 1;
+            /* Menor valor significa más abajo */
+        }
+
+        footer a:link {
+            color: rgb(80, 0, 67);
+            text-decoration: none;
+        }
+
+        @keyframes blinker {
+            50% {
+                opacity: 0;
+            }
+        }
+
+        .chooseMode {
+            font-size: 3vw;
+            text-shadow: -1px -1px rgb(255, 124, 233), 1px 1px rgb(26, 0, 21);
+            color: rgb(80, 0, 67);
+            animation: blinker 1s linear infinite;
+        }
+
+        .botones {
+            font-family: 'ArcadeClassic', sans-serif;
+            font-size: 3vw;
+            text-align: center;
+            display: inline-block;
+            margin: 4px;
+            font-weight: bold;
+            padding: 10px 5px 10px 10px;
+            -webkit-border-radius: 7px;
+            -moz-border-radius: 7px;
+            -o-border-radius: 7px;
+            border-radius: 7px;
+            cursor: pointer;
+            text-decoration: none;
+            /* Hacer desaparecer subrayado */
+        }
+
+        .btn1 {
+            text-shadow: -1px -1px rgb(164, 255, 128), 1px 1px rgb(0, 0, 0);
+            background-color: rgb(30, 255, 0);
+            color: rgb(35, 122, 0);
+            box-shadow: 0 .2em rgb(35, 122, 0);
+        }
+
+        .btn2 {
+            text-shadow: -1px -1px rgb(242, 255, 128), 1px 1px rgb(0, 0, 0);
+            background-color: rgb(187, 255, 0);
+            color: rgb(115, 128, 0);
+            box-shadow: 0 .2em rgb(115, 128, 0);
+        }
+
+        .btn3 {
+            text-shadow: -1px -1px rgb(255, 125, 125), 1px 1px rgb(0, 0, 0);
+            background-color: rgb(255, 0, 0);
+            color: rgb(129, 0, 0);
+            box-shadow: 0 .2em rgb(129, 0, 0);
+        }
+
+        .btn1:active,
+        .btn2:active,
+        .btn3:active {
+            box-shadow: none;
+            position: relative;
+            top: .2em;
+        }
+
+        .botonesEnHorizontal {
+            display: flex;
+            flex-direction: row;
+            /* Esto alinea los elementos <p> dentro del contenedor horizontalmente */
+        }
+
+    </style>
+</head>
+
+<body>
+    <header>
+        <a href="inicio.html">Dead</a>
+        <br>
+        <a href="inicio.html">Minesweeper</a>
+    </header>
+    <main>
+        <p class="chooseMode">Choose mode</p>
+        <div class="botonesEnHorizontal">
+            <a class="botones btn1" href="buscaminas.html?nivel=facil">EASY</a>
+            <a class="botones btn2" href="buscaminas.html?nivel=medio">MEDI</a>
+            <a class="botones btn3" href="buscaminas.html?nivel=dificil">HARD</a>
+            <!-- "a" para etiquetas que tienen "href" -->
+        </div>
+    </main>
+    <footer>
+        <a href="mailto:igr360@gmail.com">Contacta conmigo aquí</a>
+        <p>Copyright 2024</p>
+    </footer>
+</body>
+
+</html>

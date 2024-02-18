@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Formulario de Ejemplo</title>
+    <style>
+        input,
+        textarea {
+            color: blue;
+        }
+
+        form {
+            border: 1px solid black;
+            width: 670px;
+        }
+
+        body {
+            /* Centrar horizontalmente */
+            display: flex;
+            justify-content: center;
+            text-align: center;
+        }
+
+        legend {
+            /* Alinear el legend a la izquierda*/
+            align-self: flex-start;
+            text-align: left;
+
+        }
+
+        .espacio {
+            margin: 20px;
+        }
+
+        button {
+            font-size: 11px;
+        }
+
+        .alerta {
+            display: none;
+            color: red;
+        }
+    </style>
+</head>
+
+<body>
+
+    <form action="/submit-form" method="post">
+        <fieldset>
+            <legend>Datos personales</legend>
+            <div>
+                <label for="nombre">Introduce tu nombre</label>
+                <input type="text" id="nombre" name="nombre">
+            </div>
+            <br>
+
+            <div>
+                <label for="mensaje">Mensaje</label>
+            </div>
+            <br>
+            <textarea id="mensaje" name="mensaje" rows="8" cols="70" minlength="2" maxlength="500" required></textarea>
+            <p id="contador">500 caracteres restantes</p>
+
+        </fieldset>
+
+
+        <div class="espacio">
+            Elige un color
+            <br>
+            <label><input type="radio" name="color" value="rojo"> Rojo</label>
+            <br>
+            <label><input type="radio" name="color" value="verde"> Verde</label>
+            <br>
+            <label><input type="radio" name="color" value="azul"> Azul</label>
+            <br>
+            <label><input type="radio" name="color" value="oscuro"> Oscuro</label>
+        </div>
+        <div class="espacio">
+            <label for="asignatura">Selecciona una asignatura</label>
+
+            <select id="asignatura" name="asignatura">
+                <option value="dwes">DWES</option>
+                <option value="dwec">DWEC</option>
+                <option value="diw">DIW</option>
+                <option value="daw">DAW</option>
+                <option value="emp">Empresa</option>
+                <option value="ing">Inglés</option>
+            </select>
+        </div>
+
+
+        <div class="espacio">
+            Selecciona los días con disponibilidad
+            <br>
+            <label><input type="checkbox" name="dias_disponibles" value="lunes"> Lunes</label>
+            <br>
+            <label><input type="checkbox" name="dias_disponibles" value="martes"> Martes</label>
+            <br>
+            <label><input type="checkbox" name="dias_disponibles" value="miercoles"> Miércoles</label>
+            <br>
+            <label><input type="checkbox" name="dias_disponibles" value="jueves"> Jueves</label>
+            <br>
+            <label><input type="checkbox" name="dias_disponibles" value="viernes"> Viernes</label>
+            <br>
+        </div>
+
+        <div class="espacio">
+            <label for="dia_preferente">Selecciona el día preferente</label>
+            <select id="dia_preferente" name="dia_preferente">
+                <option value="lunes" selected>Lunes</option>
+                <option value="martes">Martes</option>
+                <option value="miercoles">Miércoles</option>
+                <option value="jueves">Jueves</option>
+                <option value="viernes">Viernes</option>
+                <option value="sabado">Sábado</option>
+                <option value="domingo">Domingo</option>
+            </select>
+        </div>
+
+        <div class="espacio">
+            <label for="nombre">Introduce tu DNI</label>
+            <input type="text" id="dni" name="dni" size="6" maxlength="9" pattern="\d{8}[A-Za-z]" required>
+            <!-- size para el tamaño de la barra de texto y
+                 maxlength para el número máximo de caracteres-->
+
+        </div>
+
+        <div class="espacio">
+            <label for="fecha">Selecciona la fecha de matriculación</label>
+            <select id="dia_matriculacion" name="dia_preferente">
+                <option value="" disabled selected>Día</option>
+                <!-- Los días del 1 al 31 se añaden mediante JavaScript -->
+            </select>
+            <select id="mes_preferente" name="mes_preferente">
+                <option value="" disabled selected>Mes</option>
+                <!-- Los meses del 1 al 12 se añaden mediante JavaScript -->
+            </select>
+            <select id="año_preferente" name="año_preferente">
+                <option value="" disabled selected>Año</option>
+                <option value="a20">2020-21</option>
+                <option value="a21">2021-22</option>
+                <option value="a22">2022-23</option>
+            </select>
+        </div>
+
+        <div class="espacio">
+            <label for="opciones">Selecciona curso actual</label>
+            <select id="opciones" name="otro" onchange="mostrarOtro()">
+                <option value="" disabled selected>Año</option>
+                <option value="opcion1">2020-21</option>
+                <option value="apcion2">2021-22</option>
+                <option value="opcion3">2022-23</option>
+                <option value="otro">Otro...</option>
+            </select>
+        </div>
+
+        <!-- Campo de texto oculto inicialmente, solo aparece si se selecciona
+             "Otro..." en el apartado anterior -->
+        <div class="espacio" id="otroCampo" style="display:none;">
+            <label for="otraOpcion">Introduce otro curso</label>
+            <input type="text" id="otraOpcion" name="otraOpcion" size="4">
+        </div>
+
+        <!-- Campo de texto oculto inicialmente, solo aparece si no se cumple que
+             haya entre 2 y 500 caracteres en Mensaje -->
+        <div class="espacio">
+            <p class="alerta" id="alerta">Debes introducir entre 2 y 500 caracteres</p>
+        </div>
+
+        <div class="espacio">
+            <button type="submit">Haz clic para enviar información</button>
+            <button type="reset">Comenzar a rellenar de nuevo</button>
+            <button type="button" id="link">Haz clic sobre mí</button>
+        </div>
+    </form>
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>
